@@ -9,8 +9,7 @@ public final class MCCDirectoryService {
     }
     
     private func loadDirectory() {
-        guard let url = Bundle.main.url(forResource: "mcc_codes", withExtension: "json") ??
-                        Bundle.module.url(forResource: "mcc_codes", withExtension: "json") else {
+        guard let url = Bundle.main.url(forResource: "mcc_codes", withExtension: "json") else {
             return
         }
         
