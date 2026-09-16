@@ -15,6 +15,34 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Inspect and Fix Structure
+        run: |
+          echo "=== Root files ==="
+          ls -la
+
+          # Если папки FinancePlanner нет, но swift-файлы лежат в корне, перемещаем их в FinancePlanner
+          if [ ! -d "FinancePlanner" ]; then
+            echo "FinancePlanner directory missing. Creating and organizing files..."
+            mkdir -p FinancePlanner
+            
+            # Перемещаем директории проекта, если они оказались в корне
+            for dir in Models Views ViewModels Services Resources; do
+              if [ -d "$dir" ]; then
+                mv "$dir" FinancePlanner/
+              fi
+            done
+            
+            # Перемещаем файлы исходного кода и Info.plist, если они в корне
+            for file in *.swift Info.plist; do
+              if [ -f "$file" ]; then
+                mv "$file" FinancePlanner/
+              fi
+            done
+          fi
+
+          echo "=== Content of FinancePlanner ==="
+          ls -la FinancePlanner
+
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
 
