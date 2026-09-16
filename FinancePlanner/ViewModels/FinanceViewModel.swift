@@ -37,9 +37,8 @@ public final class FinanceViewModel: ObservableObject {
     }
     
     public func importSampleDataDirectly(context: ModelContext) {
-        guard let sampleUrl = Bundle.main.url(forResource: "sample_statement", withExtension: "json") ??
-                              Bundle.module.url(forResource: "sample_statement", withExtension: "json") else {
-            self.errorMessage = "Демо-файл не найден в Bundle."
+        guard let sampleUrl = Bundle.main.url(forResource: "sample_statement", withExtension: "json") else {
+            self.errorMessage = "Демо-файл не найден в приложении."
             self.hasError = true
             return
         }
@@ -48,30 +47,24 @@ public final class FinanceViewModel: ObservableObject {
     
     private func saveImportedRecords(_ records: [ParsedRecord], in context: ModelContext) {
         var addedCount = 0
+        let allExistingTx = (try? context.fetch(FetchDescriptor<Transaction>())) ?? []
+        let existingIds = Set(allExistingTx.map { $0.id })
+        
+        let allWallets = (try? context.fetch(FetchDescriptor<Wallet>())) ?? []
+        var walletMap: [String: Wallet] = Dictionary(uniqueKeysWithValues: allWallets.map { ($0.name, $0) })
         
         for record in records {
-            let targetId = record.id
-            var fetchDescriptor = FetchDescriptor<Transaction>(
-                predicate: #Predicate { $0.id == targetId }
-            )
-            fetchDescriptor.fetchLimit = 1
-            
-            if let existing = try? context.fetch(fetchDescriptor), !existing.isEmpty {
+            if existingIds.contains(record.id) {
                 continue
             }
             
-            let account = record.accountName
-            var walletDescriptor = FetchDescriptor<Wallet>(
-                predicate: #Predicate { $0.name == account }
-            )
-            walletDescriptor.fetchLimit = 1
-            
             let wallet: Wallet
-            if let foundWallet = try? context.fetch(walletDescriptor).first {
-                wallet = foundWallet
+            if let existingWallet = walletMap[record.accountName] {
+                wallet = existingWallet
             } else {
                 let newWallet = Wallet(name: record.accountName, balance: 10000.0)
                 context.insert(newWallet)
+                walletMap[record.accountName] = newWallet
                 wallet = newWallet
             }
             
