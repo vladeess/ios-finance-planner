@@ -1,0 +1,55 @@
+name: Build for Appetize.io
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode Project
+        run: xcodegen generate
+
+      - name: Build for iOS Simulator
+        run: |
+          xcodebuild clean build \
+            -project FinancePlanner.xcodeproj \
+            -scheme FinancePlanner \
+            -destination "generic/platform=iOS Simulator" \
+            -configuration Release \
+            -derivedDataPath ./DerivedData \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Compress App Bundle for Appetize.io
+        run: |
+          APP_PATH=$(find ./DerivedData/Build/Products/Release-iphonesimulator -name "FinancePlanner.app" -type d | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Error: FinancePlanner.app not found!"
+            exit 1
+          fi
+          echo "Found app at: $APP_PATH"
+          cd "$(dirname "$APP_PATH")"
+          zip -r -X "${GITHUB_WORKSPACE}/FinancePlanner-Simulator.zip" "FinancePlanner.app"
+
+      - name: Upload Appetize Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: appetize-build
+          path: FinancePlanner-Simulator.zip
+          retention-days: 14
