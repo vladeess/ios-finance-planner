@@ -1,0 +1,9 @@
+[
+  { "code": 5411, "category": "Супермаркеты", "icon": "cart.fill" },
+  { "code": 5812, "category": "Рестораны и кафе", "icon": "fork.knife" },
+  { "code": 5541, "category": "АЗС и транспорт", "icon": "fuelpump.fill" },
+  { "code": 5732, "category": "Электроника", "icon": "desktopcomputer" },
+  { "code": 4121, "category": "Такси", "icon": "car.fill" },
+  { "code": 5912, "category": "Аптеки", "icon": "cross.case.fill" },
+  { "code": 7997, "category": "Спорт и фитнес", "icon": "figure.run" }
+]
